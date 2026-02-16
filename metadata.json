@@ -1,0 +1,7 @@
+{
+  "name": "StagePort • Kinetic Provenance OS",
+  "description": "Enterprise platform for stamping kinetic provenance onto movement syntax. Features direct ingest for private internal processes, device ID hashing, and non-biometric dimension tracking with strict false-claim/perjury warnings.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
