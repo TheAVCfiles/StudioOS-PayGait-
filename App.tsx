@@ -53,7 +53,8 @@ import {
   FileWarning,
   Eye,
   Github,
-  Network
+  Network,
+  UserCircle
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { VideoItem, VideoSourceType, KineticArtifact, ChoreographerClaim, ClaimScope, ProductionSegment, DancerContribution, EcosystemRole, EcosystemLayer, RoleMetadata, UserWallet, LogEntry, LicenseType } from './types';
@@ -134,7 +135,7 @@ const App: React.FC = () => {
     const interval = setInterval(() => {
       setSysIntegrity(prev => +(prev + (Math.random() * 0.1 - 0.05)).toFixed(2));
       if (Math.random() > 0.95) {
-        addLog('Unauthorized GitHub pull request detected from 192.168.1.1. Scrutinizing architecture...', 'SECURITY', 'NETWORK');
+        addLog('Unauthorized GitHub pull request detected. Scrutinizing architecture...', 'SECURITY', 'NETWORK');
       }
     }, 5000);
     return () => clearInterval(interval);
@@ -172,7 +173,7 @@ const App: React.FC = () => {
       contributor: '',
       startTime: '00:00',
       endTime: '01:00',
-      contributionPercentage: 0,
+      contributionPercentage: 100,
       dancers: []
     };
     setClaimForm(prev => ({...prev, segments: [...prev.segments, newSegment]}));
@@ -191,11 +192,12 @@ const App: React.FC = () => {
   };
 
   const addDancer = (segId: string) => {
-    const d: DancerContribution = { id: Math.random().toString(36).substr(2, 9), name: '', role: 'Ensemble', stake: 0 };
+    const d: DancerContribution = { id: Math.random().toString(36).substr(2, 9), name: '', role: 'Soloist', stake: 0 };
     setClaimForm(prev => ({
       ...prev,
       segments: prev.segments.map(s => s.id === segId ? {...s, dancers: [...s.dancers, d]} : s)
     }));
+    addLog(`Added dancer to segment ${segId}`, 'INFO', 'MANIFEST');
   };
 
   const updateDancer = (segId: string, dancerId: string, updates: Partial<DancerContribution>) => {
@@ -228,7 +230,7 @@ const App: React.FC = () => {
       status: 'pending',
       isPrivate: isPrivate,
       roleContext: currentRole,
-      claim: { ...claimForm }
+      claim: JSON.parse(JSON.stringify(claimForm)) // Deep clone the current form state
     };
     setVideos(prev => [...prev, newItem]);
     addLog(`Ingested ${type} source: ${newItem.name}`, 'INFO', 'INGEST');
@@ -400,7 +402,7 @@ const App: React.FC = () => {
             {/* Warning Banner for Public Code */}
             <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-3xl flex items-center gap-4 animate-pulse">
                <FileWarning className="text-red-500 shrink-0" />
-               <p className="text-[10px] uppercase font-bold text-red-500 tracking-widest">
+               <p className="text-[10px] uppercase font-bold text-red-500 tracking-widest leading-relaxed">
                   Caution: Public Repository Detected. System Architecture is public, but your private kinetic aura keys remain locally encrypted and hardware-locked. 
                   <span className="text-white block mt-1">Zero-Knowledge Proofs ensure raw IP never leaves this node.</span>
                </p>
@@ -526,10 +528,10 @@ const App: React.FC = () => {
                           <Plus size={14}/> Add Sequence
                         </button>
                       </div>
-                      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-3 custom-scrollbar">
+                      <div className="space-y-6 max-h-[500px] overflow-y-auto pr-3 custom-scrollbar">
                         {claimForm.segments.map(segment => (
                           <div key={segment.id} className="p-8 bg-white/[0.01] rounded-[2.5rem] border border-white/5 space-y-6 group/segment hover:border-[#c9a15a]/30 transition-all hover:bg-white/[0.02]">
-                               <div className="flex justify-between items-center">
+                               <div className="flex justify-between items-center border-b border-white/5 pb-4">
                                   <div className="flex items-center gap-4">
                                      <div className="w-2 h-2 rounded-full bg-[#c9a15a] animate-pulse"></div>
                                      <input 
@@ -542,11 +544,64 @@ const App: React.FC = () => {
                                      <Trash2 size={16} />
                                   </button>
                                </div>
-                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                  <InputField label="Lead Contributor" value={segment.contributor} onChange={v => updateSegment(segment.id, {contributor: v})} />
-                                  <div className="grid grid-cols-2 gap-4">
-                                     <InputField label="Start Time" value={segment.startTime} onChange={v => updateSegment(segment.id, {startTime: v})} />
-                                     <InputField label="End Time" value={segment.endTime} onChange={v => updateSegment(segment.id, {endTime: v})} />
+                               
+                               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                  <InputField label="Sequence Lead" value={segment.contributor} onChange={v => updateSegment(segment.id, {contributor: v})} />
+                                  <InputField label="Start / End" value={`${segment.startTime} - ${segment.endTime}`} onChange={v => {
+                                      const [s, e] = v.split('-').map(t => t.trim());
+                                      updateSegment(segment.id, {startTime: s || '00:00', endTime: e || '01:00'});
+                                  }} />
+                                  <div className="space-y-2">
+                                     <label className="text-[10px] uppercase font-black tracking-widest text-zinc-600 px-1">Segment Stake (%)</label>
+                                     <input 
+                                        type="number"
+                                        value={segment.contributionPercentage}
+                                        onChange={e => updateSegment(segment.id, { contributionPercentage: parseInt(e.target.value) || 0 })}
+                                        className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-xs focus:border-[#c9a15a] outline-none transition-all font-bold text-zinc-300"
+                                     />
+                                  </div>
+                               </div>
+
+                               {/* Individual Dancer Contributions */}
+                               <div className="space-y-4 pt-4">
+                                  <div className="flex justify-between items-center px-1">
+                                     <span className="text-[9px] uppercase font-black tracking-[0.2em] text-zinc-600">Dancer Contributions</span>
+                                     <button onClick={() => addDancer(segment.id)} className="text-[9px] font-black uppercase text-[#c9a15a] hover:text-white flex items-center gap-1">
+                                        <Plus size={12}/> Add Contributor
+                                     </button>
+                                  </div>
+                                  <div className="space-y-3">
+                                     {segment.dancers.map(dancer => (
+                                       <div key={dancer.id} className="flex gap-3 items-center group/dancer">
+                                          <div className="flex-1 grid grid-cols-3 gap-3">
+                                             <input 
+                                                placeholder="Name"
+                                                value={dancer.name}
+                                                onChange={e => updateDancer(segment.id, dancer.id, {name: e.target.value})}
+                                                className="bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-[11px] font-bold focus:border-[#c9a15a]/50 outline-none"
+                                             />
+                                             <input 
+                                                placeholder="Role (e.g. Soloist)"
+                                                value={dancer.role}
+                                                onChange={e => updateDancer(segment.id, dancer.id, {role: e.target.value})}
+                                                className="bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-[11px] font-bold focus:border-[#c9a15a]/50 outline-none"
+                                             />
+                                             <div className="relative">
+                                                <input 
+                                                   placeholder="Stake %"
+                                                   type="number"
+                                                   value={dancer.stake}
+                                                   onChange={e => updateDancer(segment.id, dancer.id, {stake: parseInt(e.target.value) || 0})}
+                                                   className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-[11px] font-bold focus:border-[#c9a15a]/50 outline-none"
+                                                />
+                                                <span className="absolute right-3 top-2.5 text-[10px] text-zinc-700">%</span>
+                                             </div>
+                                          </div>
+                                          <button onClick={() => removeDancer(segment.id, dancer.id)} className="p-2 opacity-0 group-hover/dancer:opacity-100 text-zinc-800 hover:text-red-500 transition-all">
+                                             <Trash2 size={14} />
+                                          </button>
+                                       </div>
+                                     ))}
                                   </div>
                                </div>
                             </div>
@@ -809,7 +864,7 @@ const DetailedVideoArtifact: React.FC<{ video: VideoItem; onRemove: () => void; 
       {(isC || isB) && video.result && (
         <div className="px-10 pb-10 space-y-8 animate-in slide-in-from-top-6 duration-1000">
            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <ArtifactStat label="ZKP Proof" value="VALID" sub={video.result.zkp_hash.slice(0, 12)} icon={<ShieldCheck size={24} className="opacity-10"/>} />
+              <ArtifactStat label="Claim Type" value={video.result.claim_type.toUpperCase()} sub={video.result.fingerprint_scope} icon={<ShieldCheck size={24} className="opacity-10"/>} />
               <ArtifactStat label="Encryption" value="AES-256" sub="GCM Sealed" icon={<Lock size={24} className="opacity-10"/>} />
               <ArtifactStat label="Watermark" value="LOCKED" sub={video.result.watermark_id} icon={<Eye size={24} className="opacity-10"/>} />
            </div>
@@ -831,6 +886,30 @@ const DetailedVideoArtifact: React.FC<{ video: VideoItem; onRemove: () => void; 
                  <DimensionBox label="ZKP Signature (IP)" value={video.result.signature.slice(0, 20) + '...'} />
                  <DimensionBox label="Hardware Seal" value={video.result.device_fingerprint} />
               </div>
+
+              {video.result.claim_data && video.result.claim_data.segments.length > 0 && (
+                <div className="pt-4 space-y-4">
+                   <p className="text-[9px] uppercase font-black tracking-widest text-zinc-600">Kinetic Sequence Breakdown</p>
+                   <div className="space-y-3">
+                      {video.result.claim_data.segments.map(seg => (
+                        <div key={seg.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                           <div className="flex justify-between items-start mb-2">
+                              <span className="text-[11px] font-bold text-zinc-300">{seg.label}</span>
+                              <span className="text-[10px] font-mono text-[#c9a15a]">{seg.contributionPercentage}% STAKE</span>
+                           </div>
+                           <div className="flex flex-wrap gap-2">
+                              {seg.dancers.map(d => (
+                                <div key={d.id} className="flex items-center gap-1.5 px-2 py-1 bg-black/40 rounded-lg border border-white/5">
+                                   <UserCircle size={10} className="text-zinc-500" />
+                                   <span className="text-[9px] text-zinc-400">{d.name} ({d.role})</span>
+                                </div>
+                              ))}
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+              )}
               
               <div className="pt-6 border-t border-white/10 flex flex-col gap-4">
                 <div className="flex justify-between items-center">
@@ -854,7 +933,7 @@ const ArtifactStat: React.FC<{ label: string, value: string, sub: string, icon: 
     <div className="absolute top-0 right-0 p-4 transition-transform group-hover:scale-110 duration-700">{icon}</div>
     <div className="relative z-10">
       <p className="text-[10px] uppercase font-black text-zinc-600 tracking-widest mb-3">{label}</p>
-      <p className="text-3xl font-serif font-bold text-white italic tracking-tight">{value}</p>
+      <p className="text-2xl font-serif font-bold text-white italic tracking-tight break-words">{value}</p>
       <p className="text-[9px] text-zinc-600 mt-2 font-black uppercase tracking-wider">{sub}</p>
     </div>
   </div>
@@ -915,6 +994,16 @@ const EcosystemIcon: React.FC<{active: boolean, icon: React.ReactNode, onClick: 
       {label}
     </span>
   </button>
+);
+
+const MapDetailCard: React.FC<{ title: string, body: string, icon: React.ReactNode, color: string }> = ({ title, body, icon, color }) => (
+  <div className="glass p-10 rounded-[2.5rem] border-white/5 group hover:border-[#c9a15a]/30 transition-all flex flex-col h-full shadow-2xl">
+    <div className={`w-14 h-14 rounded-2xl mb-8 flex items-center justify-center`} style={{ backgroundColor: color + '22', color: color }}>
+      {icon}
+    </div>
+    <h3 className="text-2xl font-serif font-bold text-white italic mb-4">{title}</h3>
+    <p className="text-zinc-500 text-sm leading-relaxed font-medium">{body}</p>
+  </div>
 );
 
 const InputField: React.FC<{label: string, value: string, onChange: (v: string) => void, placeholder?: string}> = ({label, value, onChange, placeholder}) => (
