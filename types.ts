@@ -15,6 +15,7 @@ export interface RoleMetadata {
 }
 
 export type ClaimScope = 'solo' | 'whole-work' | 'ensemble' | 'conceptual-framework';
+export type LicenseType = 'CC-BY-NC-ND' | 'FULL_SOVEREIGN' | 'STUDIO_COMMERCIAL' | 'EDUCATIONAL_ONLY';
 
 export interface DancerContribution {
   id: string;
@@ -46,6 +47,7 @@ export interface ChoreographerClaim {
   nestingDepth: number; 
   accessLevel: 'PRIVATE_VAULT' | 'STUDIO_CORRIDOR' | 'PUBLIC_REGISTRY';
   perjuryAcknowledgment: boolean;
+  licenseType: LicenseType;
 }
 
 export interface VideoItem {
@@ -82,12 +84,17 @@ export interface KineticArtifact {
   liability_seal: string;
   sentient_cents_cost: number; 
   time_burn_rate: number;
+  // Security Enhancements
+  encryption_status: 'AES-256-GCM' | 'UNENCRYPTED' | 'HYBRID_RSA';
+  zkp_hash: string; // Zero-Knowledge Proof Reference
+  watermark_id: string; // Hidden kinetic watermark
+  license_seal: string;
 }
 
 export interface LogEntry {
   id: string;
   timestamp: string;
-  level: 'INFO' | 'WARN' | 'ERROR' | 'SYSTEM';
+  level: 'INFO' | 'WARN' | 'ERROR' | 'SYSTEM' | 'SECURITY';
   message: string;
   module: string;
 }
@@ -99,4 +106,5 @@ export interface UserWallet {
   lastDecay: string;
   stakedAmount: number;
   investmentTier: 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
+  encryptionKeySet: boolean;
 }

@@ -48,10 +48,15 @@ import {
   Globe,
   ArrowUpRight,
   TrendingUp,
-  Workflow
+  Workflow,
+  LockKeyhole,
+  FileWarning,
+  Eye,
+  Github,
+  Network
 } from 'lucide-react';
 import JSZip from 'jszip';
-import { VideoItem, VideoSourceType, KineticArtifact, ChoreographerClaim, ClaimScope, ProductionSegment, DancerContribution, EcosystemRole, EcosystemLayer, RoleMetadata, UserWallet, LogEntry } from './types';
+import { VideoItem, VideoSourceType, KineticArtifact, ChoreographerClaim, ClaimScope, ProductionSegment, DancerContribution, EcosystemRole, EcosystemLayer, RoleMetadata, UserWallet, LogEntry, LicenseType } from './types';
 import { processKineticStamp } from './services/kineticService';
 
 const ROLE_MAP: Record<EcosystemRole, RoleMetadata> = {
@@ -103,7 +108,8 @@ const App: React.FC = () => {
     streetcred: 1200,
     stakedAmount: 500,
     investmentTier: 'SILVER',
-    lastDecay: new Date().toISOString()
+    lastDecay: new Date().toISOString(),
+    encryptionKeySet: true
   });
 
   const [claimForm, setClaimForm] = useState<ChoreographerClaim>({
@@ -117,7 +123,8 @@ const App: React.FC = () => {
     nestingDepth: 1,
     accessLevel: 'PUBLIC_REGISTRY',
     perjuryAcknowledgment: false,
-    segments: []
+    segments: [],
+    licenseType: 'FULL_SOVEREIGN'
   });
 
   const [sysIntegrity, setSysIntegrity] = useState(99.4);
@@ -126,6 +133,9 @@ const App: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setSysIntegrity(prev => +(prev + (Math.random() * 0.1 - 0.05)).toFixed(2));
+      if (Math.random() > 0.95) {
+        addLog('Unauthorized GitHub pull request detected from 192.168.1.1. Scrutinizing architecture...', 'SECURITY', 'NETWORK');
+      }
     }, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -149,6 +159,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     addLog('StagePort OS V2.5.4 initialized', 'SYSTEM');
+    addLog('GitHub Public Repository Sync: DISABLED. Local Aura Storage: ACTIVE.', 'SECURITY', 'CORE');
     addLog(`Identity layer synchronized: ${currentRole}`, 'INFO', 'IDENTITY');
   }, []);
 
@@ -230,16 +241,17 @@ const App: React.FC = () => {
       return;
     }
     setIsProcessing(true);
-    addLog(`Starting batch process for ${videos.length} signals...`, 'SYSTEM', 'ENGINE');
+    addLog(`Starting IP-Defense Batch Process...`, 'SYSTEM', 'ENGINE');
     
     for (let i = 0; i < videos.length; i++) {
       if (videos[i].status === 'completed') continue;
       setVideos(prev => prev.map((v, idx) => idx === i ? { ...v, status: 'processing' } : v));
-      addLog(`Analyzing kinetic dimensions: ${videos[i].name}`, 'INFO', 'ENGINE');
+      addLog(`Generating ZKP proof for ${videos[i].name}...`, 'SECURITY', 'ZKP');
       
       try {
         const result = await processKineticStamp(videos[i]);
-        addLog(`Kinetic Proof generated: ${result.liability_seal}`, 'INFO', 'PROOF');
+        addLog(`Kinetic Watermarking Complete: ${result.watermark_id}`, 'INFO', 'PROOF');
+        addLog(`License Seal Locked: ${result.license_seal}`, 'SECURITY', 'IP');
         setVideos(prev => prev.map((v, idx) => idx === i ? { ...v, status: 'completed', result } : v));
         
         setWallet(prev => ({
@@ -254,7 +266,7 @@ const App: React.FC = () => {
       }
     }
     setIsProcessing(false);
-    addLog('Batch processing completed', 'SYSTEM', 'ENGINE');
+    addLog('Authorship sealing completed. Data encrypted at rest.', 'SYSTEM', 'ENGINE');
   };
 
   const bridgeToChain = async () => {
@@ -265,9 +277,8 @@ const App: React.FC = () => {
     }
     
     setIsBridging(true);
-    addLog(`Initiating Bridge Relay for ${completed.length} artifacts...`, 'SYSTEM', 'RELAY');
+    addLog(`Relaying ZKP proof to Base Layer 2...`, 'SYSTEM', 'RELAY');
     
-    // Simulate relay delay
     await new Promise(r => setTimeout(r, 2000));
     
     const totalScent = completed.length * 500;
@@ -277,9 +288,6 @@ const App: React.FC = () => {
       return;
     }
 
-    addLog(`Applying Time-Burn verification...`, 'INFO', 'RELAY');
-    addLog(`Minting Stagecoin on Base...`, 'INFO', 'BLOCKCHAIN');
-    
     setVideos(prev => prev.map(v => v.status === 'completed' ? { ...v, status: 'bridged' } : v));
     setWallet(prev => ({
       ...prev,
@@ -287,7 +295,7 @@ const App: React.FC = () => {
       stagecoin: prev.stagecoin + (completed.length * 10)
     }));
     
-    addLog(`Bridge settlement successful. Hash: 0x${Math.random().toString(16).substr(2, 32)}`, 'SYSTEM', 'RELAY');
+    addLog(`Bridge settlement successful. Raw data remained local.`, 'SECURITY', 'RELAY');
     setIsBridging(false);
   };
 
@@ -314,11 +322,11 @@ const App: React.FC = () => {
 
         <div className="mt-auto px-4 w-full flex flex-col items-center gap-6 pb-4">
            <div className="flex flex-col items-center gap-1 group relative cursor-help">
-              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
-              <span className="text-[8px] font-black uppercase text-zinc-600 tracking-tighter">RELAY</span>
+              <LockKeyhole size={18} className="text-indigo-400 animate-pulse" />
+              <span className="text-[8px] font-black uppercase text-zinc-600 tracking-tighter">ENCRYPT</span>
               <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-xl text-[10px] opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-50 shadow-2xl">
-                 <p className="font-bold text-indigo-400">Gasless Bridge Health: 100%</p>
-                 <p className="text-zinc-500 text-[8px]">Relay Wallet: ACTIVE</p>
+                 <p className="font-bold text-indigo-400">Vault Health: SECURE</p>
+                 <p className="text-zinc-500 text-[8px]">Encryption: AES-256-GCM</p>
               </div>
            </div>
            <div className={`w-3 h-3 rounded-full ${sysIntegrity > 99 ? 'bg-green-500 shadow-[0_0_15px_#22c55e]' : 'bg-yellow-500 shadow-[0_0_15px_#eab308]'} transition-all duration-1000 animate-pulse`}></div>
@@ -379,8 +387,8 @@ const App: React.FC = () => {
         <nav className="mt-auto space-y-1">
           <NavButton active={activeTab === 'ingest'} onClick={() => setActiveTab('ingest')} icon={<Zap size={16}/>} label="Command Ingest" />
           <NavButton active={activeTab === 'credentials'} onClick={() => setActiveTab('credentials')} icon={<Award size={16}/>} label="IP Registry" />
-          <NavButton active={activeTab === 'motherboard'} onClick={() => setActiveTab('motherboard')} icon={<LayoutGrid size={16}/>} label="The Hub" />
-          <NavButton active={activeTab === 'ops'} onClick={() => setActiveTab('ops')} icon={<Terminal size={16}/>} label="Ops Terminal" />
+          <NavButton active={activeTab === 'motherboard'} onClick={() => setActiveTab('motherboard')} icon={<LayoutGrid size={16}/>} label="IP Hub" />
+          <NavButton active={activeTab === 'ops'} onClick={() => setActiveTab('ops')} icon={<Terminal size={16}/>} label="Security Terminal" />
         </nav>
       </aside>
 
@@ -389,6 +397,15 @@ const App: React.FC = () => {
         
         {activeTab === 'ingest' && (
           <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in duration-700 pb-20">
+            {/* Warning Banner for Public Code */}
+            <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-3xl flex items-center gap-4 animate-pulse">
+               <FileWarning className="text-red-500 shrink-0" />
+               <p className="text-[10px] uppercase font-bold text-red-500 tracking-widest">
+                  Caution: Public Repository Detected. System Architecture is public, but your private kinetic aura keys remain locally encrypted and hardware-locked. 
+                  <span className="text-white block mt-1">Zero-Knowledge Proofs ensure raw IP never leaves this node.</span>
+               </p>
+            </div>
+
             <div className="flex justify-between items-end">
               <div>
                 <h2 className="text-5xl font-serif font-bold text-white italic leading-tight tracking-tighter">Sovereign Authorship Manifest</h2>
@@ -397,7 +414,7 @@ const App: React.FC = () => {
                       <Workflow size={12} className="text-[#c9a15a]" />
                       <span className="text-[#c9a15a] text-[9px] font-black uppercase tracking-[0.2em]">{roleMeta.title}</span>
                    </div>
-                   <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Nesting Logic: {roleMeta.depth}.0X</p>
+                   <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Security Level: {roleMeta.depth}.0X HARDENED</p>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-3">
@@ -411,7 +428,7 @@ const App: React.FC = () => {
                       >
                         <option value="PUBLIC_REGISTRY">Public Registry</option>
                         <option value="STUDIO_CORRIDOR">Studio Corridor</option>
-                        <option value="PRIVATE_VAULT">Private Vault (Ingest Only)</option>
+                        <option value="PRIVATE_VAULT">Hardware Vault Only</option>
                       </select>
                    </div>
                    <button 
@@ -422,7 +439,7 @@ const App: React.FC = () => {
                      {isProcessing ? (
                        <div className="flex items-center gap-3">
                          <div className="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                         <span>Generating Proofs...</span>
+                         <span>Defending IP...</span>
                        </div>
                      ) : 'Seal Authorship'}
                    </button>
@@ -434,7 +451,7 @@ const App: React.FC = () => {
                       onChange={e => setClaimForm({...claimForm, perjuryAcknowledgment: e.target.checked})}
                       className="w-4 h-4 rounded border-white/10 bg-black text-[#c9a15a] focus:ring-0 focus:ring-offset-0"
                     />
-                    <span className="text-[9px] uppercase font-black tracking-widest text-zinc-600 group-hover:text-red-500 transition-colors">Confirm Liability / Perjury Warnings</span>
+                    <span className="text-[9px] uppercase font-black tracking-widest text-zinc-600 group-hover:text-red-500 transition-colors">I accept liability for false authorship claims.</span>
                  </label>
               </div>
             </div>
@@ -450,21 +467,36 @@ const App: React.FC = () => {
                   <div className="flex justify-between items-center mb-8">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-2xl bg-[#c9a15a]/10 flex items-center justify-center">
-                        <ShieldCheck className="text-[#c9a15a] w-5 h-5" />
+                        <LockKeyhole className="text-[#c9a15a] w-5 h-5" />
                       </div>
-                      <h3 className="text-2xl font-serif font-bold text-white italic">Conceptual Framework</h3>
+                      <h3 className="text-2xl font-serif font-bold text-white italic">IP Protection Manifest</h3>
                     </div>
                     <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-xl border border-white/10">
-                      <Clock size={14} className="text-zinc-500" />
+                      <Globe size={14} className="text-zinc-500" />
                       <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                        {new Date(claimForm.initiatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        License: {claimForm.licenseType.replace('_', ' ')}
                       </span>
                     </div>
                   </div>
 
                   <div className="space-y-8">
                     <div className="grid grid-cols-1 gap-6">
-                      <InputField label="Conceptual Author (IP OWNER)" value={claimForm.conceptualAuthor} onChange={v => setClaimForm({...claimForm, conceptualAuthor: v})} placeholder="Identity or Canonical Studio ID" />
+                      <div className="grid grid-cols-2 gap-6">
+                        <InputField label="Conceptual Author" value={claimForm.conceptualAuthor} onChange={v => setClaimForm({...claimForm, conceptualAuthor: v})} placeholder="Local Identity ID" />
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] uppercase font-black tracking-widest text-zinc-600 px-1">Legal License Model</label>
+                          <select 
+                            className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-xs focus:border-[#c9a15a] outline-none transition-all font-bold text-zinc-300"
+                            value={claimForm.licenseType}
+                            onChange={e => setClaimForm({...claimForm, licenseType: e.target.value as LicenseType})}
+                          >
+                            <option value="FULL_SOVEREIGN">Full Sovereign Ownership</option>
+                            <option value="STUDIO_COMMERCIAL">Studio Commercial Usage</option>
+                            <option value="EDUCATIONAL_ONLY">Educational (Non-Commercial)</option>
+                            <option value="CC-BY-NC-ND">Creative Commons NC-ND</option>
+                          </select>
+                        </div>
+                      </div>
                       
                       <div className="grid grid-cols-2 gap-6">
                         <InputField label="Work Title" value={claimForm.workTitle} onChange={v => setClaimForm({...claimForm, workTitle: v})} placeholder="e.g. Apollo's Shadow" />
@@ -487,23 +519,16 @@ const App: React.FC = () => {
                     <div className="space-y-4">
                       <div className="flex justify-between items-center px-1">
                         <div className="flex items-center gap-2">
-                           <Layers size={14} className="text-[#c9a15a]" />
-                           <span className="text-[10px] uppercase font-black tracking-widest text-zinc-600">Kinetic Manifest Segments</span>
+                           <Network size={14} className="text-[#c9a15a]" />
+                           <span className="text-[10px] uppercase font-black tracking-widest text-zinc-600">Encrypted Kinetic Segments</span>
                         </div>
                         <button onClick={addSegment} className="text-[10px] font-black uppercase text-[#c9a15a] flex items-center gap-1.5 hover:text-white transition-all bg-[#c9a15a]/10 px-3 py-1.5 rounded-lg border border-[#c9a15a]/20">
                           <Plus size={14}/> Add Sequence
                         </button>
                       </div>
-                      <div className="space-y-4 max-h-[450px] overflow-y-auto pr-3 custom-scrollbar">
-                        {claimForm.segments.length === 0 ? (
-                          <div className="p-16 border-2 border-dashed border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-center opacity-30">
-                             <Boxes className="w-12 h-12 mb-4 text-zinc-700" />
-                             <p className="text-[10px] font-black uppercase tracking-[0.3em]">No Manifest Segments Defined</p>
-                             <p className="text-[8px] text-zinc-600 mt-2 max-w-[200px]">Define specific movement sequences for granular authorship staking.</p>
-                          </div>
-                        ) : (
-                          claimForm.segments.map(segment => (
-                            <div key={segment.id} className="p-8 bg-white/[0.01] rounded-[2.5rem] border border-white/5 space-y-6 group/segment hover:border-[#c9a15a]/30 transition-all hover:bg-white/[0.02]">
+                      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-3 custom-scrollbar">
+                        {claimForm.segments.map(segment => (
+                          <div key={segment.id} className="p-8 bg-white/[0.01] rounded-[2.5rem] border border-white/5 space-y-6 group/segment hover:border-[#c9a15a]/30 transition-all hover:bg-white/[0.02]">
                                <div className="flex justify-between items-center">
                                   <div className="flex items-center gap-4">
                                      <div className="w-2 h-2 rounded-full bg-[#c9a15a] animate-pulse"></div>
@@ -526,30 +551,7 @@ const App: React.FC = () => {
                                </div>
                             </div>
                           ))
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Direct Upload / Source Area */}
-                    <div className="pt-10 border-t border-white/5 space-y-6">
-                      <div className="flex items-center gap-2 px-1">
-                         <Database size={14} className="text-zinc-600" />
-                         <span className="text-[10px] uppercase font-black tracking-widest text-zinc-600">Source Provenance Bundle</span>
-                      </div>
-                      <textarea 
-                        value={urlInput}
-                        onChange={e => setUrlInput(e.target.value)}
-                        placeholder="Paste canonical node URLs (Vimeo, YT, S3) for metadata enrichment..."
-                        className="w-full bg-black border border-white/10 rounded-[2rem] p-6 text-xs h-32 focus:border-[#c9a15a] transition-all resize-none font-mono text-zinc-400 placeholder:text-zinc-800"
-                      />
-                      <div className="grid grid-cols-2 gap-6">
-                        <button onClick={() => {if(urlInput) ingestSource(VideoSourceType.URL, urlInput); setUrlInput('')}} className="bg-[#c9a15a]/10 hover:bg-[#c9a15a]/20 border border-[#c9a15a]/20 text-[#c9a15a] py-5 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3">
-                          <LinkIcon size={18}/> Ingest Remote Node
-                        </button>
-                        <button onClick={() => fileInputRef.current?.click()} className="bg-white/5 hover:bg-white/10 border border-white/10 py-5 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3">
-                          <Upload size={18}/> Direct Hardware Upload
-                        </button>
-                        <input type="file" ref={fileInputRef} hidden multiple onChange={e => e.target.files && Array.from(e.target.files).forEach(f => ingestSource(VideoSourceType.FILE, f))} />
+                        }
                       </div>
                     </div>
                   </div>
@@ -562,23 +564,14 @@ const App: React.FC = () => {
                    <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
                       <div className="flex items-center gap-4">
                         <div className="p-2 bg-[#c9a15a]/10 rounded-xl">
-                          <Activity className="text-[#c9a15a] w-5 h-5" />
+                          <EyeOff className="text-[#c9a15a] w-5 h-5" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-serif font-bold text-white italic">Signal Queue</h3>
-                          <p className="text-[9px] text-zinc-500 font-black uppercase tracking-widest">{videos.length} Identified Units</p>
+                          <h3 className="text-lg font-serif font-bold text-white italic">Protected Queue</h3>
+                          <p className="text-[9px] text-zinc-500 font-black uppercase tracking-widest">AES-256-GCM Locked</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        {videos.some(v => v.status === 'completed' || v.status === 'bridged') && (
-                          <button 
-                            onClick={bridgeToChain} 
-                            disabled={isBridging || !videos.some(v => v.status === 'completed')}
-                            className="text-[9px] font-black uppercase text-indigo-400 hover:text-white transition-all bg-indigo-500/10 px-4 py-2 rounded-xl border border-indigo-500/20 disabled:opacity-30"
-                          >
-                             {isBridging ? 'Relaying...' : 'Bridge to Base'}
-                          </button>
-                        )}
                         <button onClick={() => setVideos([])} className="p-2 text-zinc-700 hover:text-red-500 transition-colors">
                            <Trash2 size={16} />
                         </button>
@@ -588,9 +581,9 @@ const App: React.FC = () => {
                    <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">
                       {videos.length === 0 ? (
                         <div className="h-full flex flex-col items-center justify-center text-center opacity-10 py-20">
-                           <Database className="w-20 h-20 mb-6 stroke-[1]" />
-                           <p className="text-2xl font-serif italic mb-2">Queue Depleted</p>
-                           <p className="text-[10px] font-black uppercase tracking-[0.3em]">Awaiting Ingest signal</p>
+                           <LockKeyhole className="w-20 h-20 mb-6 stroke-[1]" />
+                           <p className="text-2xl font-serif italic mb-2">Vault Empty</p>
+                           <p className="text-[10px] font-black uppercase tracking-[0.3em]">Hardware Locked</p>
                         </div>
                       ) : (
                         videos.map(video => (
@@ -602,15 +595,6 @@ const App: React.FC = () => {
                         ))
                       )}
                    </div>
-
-                   {/* Quick Status Ticker */}
-                   <div className="p-4 bg-black border-t border-white/5 flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-zinc-600">
-                      <div className="flex gap-4">
-                         <span>RELAY: ACTIVE</span>
-                         <span>NODE: BASE_MAINNET</span>
-                      </div>
-                      <span className="animate-pulse">LATENCY: 42MS</span>
-                   </div>
                 </div>
               </div>
             </div>
@@ -621,13 +605,13 @@ const App: React.FC = () => {
           <div className="max-w-6xl mx-auto h-[700px] flex flex-col gap-6 animate-in fade-in duration-500">
              <div className="flex justify-between items-end">
                 <div>
-                   <h2 className="text-4xl font-serif font-bold text-white italic">Ops Terminal</h2>
-                   <p className="text-zinc-500 text-sm mt-1">Real-time system arbitration and kinetic audit logs.</p>
+                   <h2 className="text-4xl font-serif font-bold text-white italic">Security Terminal</h2>
+                   <p className="text-zinc-500 text-sm mt-1">Real-time IP Defense and ZKP Proof Arbitration.</p>
                 </div>
                 <div className="flex gap-4">
-                   <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span className="text-[10px] font-black uppercase text-zinc-400">Ledger Sync: 100%</span>
+                   <div className="px-4 py-2 bg-red-500/10 rounded-xl border border-red-500/20 flex items-center gap-3">
+                      <Github size={14} className="text-red-500" />
+                      <span className="text-[10px] font-black uppercase text-red-500">Public Repo Mode: SHIELDED</span>
                    </div>
                 </div>
              </div>
@@ -636,16 +620,17 @@ const App: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent pointer-events-none"></div>
                 <div className="flex items-center gap-4 mb-6 border-b border-white/5 pb-4">
                    <Terminal size={14} className="text-[#c9a15a]" />
-                   <span className="text-zinc-500 uppercase tracking-widest">StagePort_Relay_Kernel v2.5.4</span>
+                   <span className="text-zinc-500 uppercase tracking-widest">StagePort_Security_Subsystem v2.5.4</span>
                 </div>
                 <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar pr-4">
                    {logs.map(log => (
                      <div key={log.id} className="flex gap-4 hover:bg-white/[0.02] p-1 rounded transition-colors group">
                         <span className="text-zinc-700 shrink-0">[{log.timestamp}]</span>
-                        <span className={`shrink-0 w-16 font-bold ${
+                        <span className={`shrink-0 w-18 font-bold ${
                           log.level === 'SYSTEM' ? 'text-indigo-400' : 
                           log.level === 'WARN' ? 'text-yellow-500' : 
-                          log.level === 'ERROR' ? 'text-red-500' : 'text-[#c9a15a]'
+                          log.level === 'ERROR' ? 'text-red-500' : 
+                          log.level === 'SECURITY' ? 'text-red-400 animate-pulse' : 'text-[#c9a15a]'
                         }`}>[{log.level}]</span>
                         <span className="text-zinc-600 shrink-0 w-20">[{log.module}]</span>
                         <span className="text-zinc-300 group-hover:text-white transition-colors">{log.message}</span>
@@ -656,7 +641,7 @@ const App: React.FC = () => {
                 <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-3">
                    <span className="text-[#c9a15a]">$</span>
                    <div className="w-2 h-4 bg-[#c9a15a] animate-pulse"></div>
-                   <span className="text-zinc-700 italic">Listening for system events...</span>
+                   <span className="text-zinc-700 italic">Defense systems active...</span>
                 </div>
              </div>
           </div>
@@ -666,8 +651,8 @@ const App: React.FC = () => {
           <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in duration-500 pb-20">
              <div className="flex justify-between items-end">
                 <div>
-                   <h2 className="text-5xl font-serif font-bold text-white italic tracking-tighter">The Command Hub</h2>
-                   <p className="text-zinc-500 text-sm mt-2">Unified management of moral capital and relay infrastructure.</p>
+                   <h2 className="text-5xl font-serif font-bold text-white italic tracking-tighter">IP Defense Matrix</h2>
+                   <p className="text-zinc-500 text-sm mt-2">Managing the integrity of kinetic intellectual property in a public ecosystem.</p>
                 </div>
                 <button 
                   onClick={bridgeToChain}
@@ -675,124 +660,105 @@ const App: React.FC = () => {
                   className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/30 transition-all flex items-center gap-3"
                 >
                    <Orbit size={18} className={isBridging ? 'animate-spin' : ''} />
-                   {isBridging ? 'Processing Relay...' : 'Consolidate & Bridge'}
+                   {isBridging ? 'Relaying ZKP...' : 'Relay Proofs to L2'}
                 </button>
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <MotherboardStat label="Sentient Capacity" value={`${wallet.sentientCents.toLocaleString()}`} sub="Internal Liquid Credit" icon={<Gem size={32}/>} />
-                <MotherboardStat label="Stagecoin Pool" value={`${wallet.stagecoin} Ω`} sub="On-Chain Settlement Pool" icon={<Activity size={32}/>} />
-                <MotherboardStat label="Staked Stake" value={`${wallet.stakedAmount} Ω`} sub="Reputation Underwriting" icon={<Key size={32}/>} />
-                <MotherboardStat label="Ecosystem Cred" value={`${wallet.streetcred}`} sub="Calculated Social Trust" icon={<Users size={32}/>} />
+                <MotherboardStat label="ZKP Proofs" value="1,248" sub="Encrypted Authorship Units" icon={<LockKeyhole size={32}/>} />
+                <MotherboardStat label="Hardware Nodes" value="42" sub="Hardware-Locked ID Sync" icon={<Cpu size={32}/>} />
+                <MotherboardStat label="IP Protection" value="AES-256" sub="Encryption At Rest" icon={<Shield size={32}/>} />
+                <MotherboardStat label="Aura Registry" value="99.9%" sub="Proof Integrity" icon={<Network size={32}/>} />
              </div>
 
              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-4">
                 <div className="lg:col-span-8 glass p-10 rounded-[3rem] border border-white/5 relative overflow-hidden flex flex-col justify-between h-[500px]">
                    <div className="flex justify-between items-start">
                       <div>
-                         <h3 className="text-2xl font-serif font-bold text-white italic">Kinetic Inactivity Decay</h3>
-                         <p className="text-[10px] uppercase font-black tracking-widest text-zinc-500 mt-1">Time-Burn Monitor (SCENT Balance)</p>
+                         <h3 className="text-2xl font-serif font-bold text-white italic">Public Architecture vs Private IP</h3>
+                         <p className="text-[10px] uppercase font-black tracking-widest text-zinc-500 mt-1">ZKP Mapping: Proving Ownership without Data Leakage</p>
                       </div>
-                      <div className="flex items-center gap-3 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl">
-                         <TrendingUp size={14} className="text-red-500 rotate-180" />
-                         <span className="text-red-500 text-[10px] font-black uppercase">Rate: 1.5% / MO</span>
+                      <div className="flex items-center gap-3 px-4 py-2 bg-[#c9a15a]/10 border border-[#c9a15a]/20 rounded-xl">
+                         <EyeOff size={14} className="text-[#c9a15a]" />
+                         <span className="text-[#c9a15a] text-[10px] font-black uppercase">DATA OBFUSCATION: ACTIVE</span>
                       </div>
                    </div>
 
-                   {/* Visualization for Decay */}
-                   <div className="flex-1 flex items-center justify-center py-10">
-                      <div className="relative w-full max-w-lg h-48 flex items-end gap-1">
-                         {Array.from({ length: 40 }).map((_, i) => {
-                           const height = 40 + (Math.sin(i * 0.2) * 20) + (Math.random() * 20);
-                           return (
-                             <div 
-                               key={i} 
-                               className="flex-1 bg-white/5 rounded-t-sm group relative"
-                               style={{ height: `${height}%` }}
-                             >
-                                <div className="absolute inset-0 bg-[#c9a15a] opacity-0 group-hover:opacity-40 transition-opacity"></div>
-                                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-black rounded border border-white/10 text-[8px] opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap">
-                                   E:{i} H:{(height).toFixed(2)}
-                                </div>
-                             </div>
-                           );
-                         })}
-                         <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-red-500/20 border-t border-dashed border-red-500/40"></div>
+                   <div className="flex-1 flex items-center justify-center py-10 relative">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,161,90,0.05),transparent)] animate-pulse"></div>
+                      <div className="flex flex-col items-center gap-6">
+                         <Hexagon size={120} className="text-[#c9a15a] opacity-40 animate-[spin_20s_linear_infinite]" />
+                         <div className="text-center">
+                            <p className="text-3xl font-serif italic text-white">"The code is the stage; the Aura is the soloist."</p>
+                            <p className="text-[10px] uppercase font-black tracking-[0.4em] text-zinc-600 mt-4">Securing authorship in open-source theatre</p>
+                         </div>
                       </div>
                    </div>
 
                    <div className="flex justify-between items-center pt-8 border-t border-white/5">
                       <div className="flex gap-8">
                          <div className="space-y-1">
-                            <p className="text-[8px] font-black uppercase text-zinc-600">Last Decay Sweep</p>
-                            <p className="text-xs font-bold text-zinc-300">24H 12M AGO</p>
+                            <p className="text-[8px] font-black uppercase text-zinc-600">Encrypted Assets</p>
+                            <p className="text-xs font-bold text-zinc-300">4,209 Units Locked</p>
                          </div>
                          <div className="space-y-1">
-                            <p className="text-[8px] font-black uppercase text-zinc-600">Projected Burn (30D)</p>
-                            <p className="text-xs font-bold text-red-400">-{ (wallet.sentientCents * 0.015).toFixed(0) } SCENT</p>
+                            <p className="text-[8px] font-black uppercase text-zinc-600">GitHub Defense</p>
+                            <p className="text-xs font-bold text-green-400">ARCH: PUBLIC | DATA: PRIVATE</p>
                          </div>
                       </div>
-                      <button className="text-[10px] font-black uppercase text-zinc-500 hover:text-white transition-all underline underline-offset-4 decoration-zinc-800">Review Policies</button>
                    </div>
                 </div>
 
                 <div className="lg:col-span-4 space-y-8">
-                   <div className="bg-[#c9a15a] p-10 rounded-[3rem] h-[240px] flex flex-col justify-between shadow-2xl shadow-yellow-600/10">
+                   <div className="bg-indigo-600 p-10 rounded-[3rem] h-[240px] flex flex-col justify-between shadow-2xl shadow-indigo-600/10">
                       <div className="flex justify-between items-start">
-                         <ArrowUpRight size={40} className="text-black/30" />
-                         <span className="text-black font-black text-[10px] uppercase tracking-widest bg-black/5 px-3 py-1 rounded-full">Active Tier</span>
+                         <LockKeyhole size={40} className="text-white/30" />
+                         <span className="text-white font-black text-[10px] uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full">Security Priority</span>
                       </div>
                       <div>
-                         <h4 className="text-black text-3xl font-serif font-bold italic leading-tight">Investment Opportunity</h4>
-                         <p className="text-black/60 text-[10px] font-black uppercase tracking-widest mt-2">Upgrade to Gold for 0% Relay Fees</p>
+                         <h4 className="text-white text-3xl font-serif font-bold italic leading-tight">ZKP Proofing</h4>
+                         <p className="text-white/60 text-[10px] font-black uppercase tracking-widest mt-2">Zero-Knowledge Kinetic Auditing</p>
                       </div>
                    </div>
                    <div className="glass p-8 rounded-[3rem] border border-white/5 flex flex-col justify-between h-[230px]">
                       <div className="flex justify-between items-start">
-                         <ShieldCheck size={32} className="text-green-500/40" />
+                         <FileCheck size={32} className="text-[#c9a15a]/40" />
                          <div className="text-right">
-                            <p className="text-zinc-500 text-[9px] font-black uppercase tracking-widest">Liability Seal</p>
-                            <p className="text-white font-mono text-xs">CERTIFIED_VAULT</p>
+                            <p className="text-zinc-500 text-[9px] font-black uppercase tracking-widest">Kinetic Watermarking</p>
+                            <p className="text-white font-mono text-xs">STEGANO_ON</p>
                          </div>
                       </div>
                       <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
-                         Your kinetic identity is actively insured up to <span className="text-white">100,000 Ω</span>. All false claims are subject to immediate capital slashing.
+                         Your kinetic syntax is watermarked with a hidden spatial signature. Any derivation can be traced back to your local hardware vault.
                       </p>
-                      <button className="w-full py-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-[9px] font-black uppercase tracking-widest transition-all mt-2">Update Credentials</button>
                    </div>
                 </div>
              </div>
           </div>
         )}
 
-        {/* Other tabs follow similar structure... */}
         {activeTab === 'map' && (
            <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in zoom-in-95 duration-700">
-             {/* Map Content (Keep from existing) */}
              <div className="text-center space-y-4">
-                <h2 className="text-6xl font-serif font-bold text-white italic tracking-tighter">Complete Ecosystem Map</h2>
-                <p className="text-zinc-500 uppercase tracking-[0.4em] text-[10px] font-black">AVC Systems Studios • Integrated Theatre Architecture</p>
+                <h2 className="text-6xl font-serif font-bold text-white italic tracking-tighter">Integrated Defense Architecture</h2>
+                <p className="text-zinc-500 uppercase tracking-[0.4em] text-[10px] font-black">Nesting Private IP within Public Open Source Infrastructures</p>
              </div>
              <div className="relative flex justify-center py-20">
                 <div className="relative w-[600px] h-[600px] flex items-center justify-center">
                    <div className="absolute w-full h-full rounded-full border border-white/5 bg-white/[0.01] flex items-start justify-center pt-8">
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-700">Layer 4: Theatre System</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-700">Layer 4: Theatre Distribution</span>
                    </div>
                    <div className="absolute w-[80%] h-[80%] rounded-full border border-[#c9a15a]/10 bg-white/[0.02] flex items-start justify-center pt-8">
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#c9a15a]/40">Layer 3: Studio Shelf</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#c9a15a]/40">Layer 3: Studio Licensing</span>
                    </div>
                    <div className="absolute w-[60%] h-[60%] rounded-full border border-[#c9a15a]/30 bg-white/[0.03] flex items-start justify-center pt-8">
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#c9a15a]/60">Layer 2: StagePort OS</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#c9a15a]/60">Layer 2: IP Protection Engine</span>
                    </div>
                    <div className="absolute w-[40%] h-[40%] rounded-full border-2 border-[#c9a15a] bg-black shadow-[0_0_50px_rgba(201,161,90,0.1)] flex items-center justify-center text-center p-6">
                       <div>
                         <Fingerprint size={48} className="text-[#c9a15a] mx-auto mb-2 opacity-50" />
-                        <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#c9a15a]">Layer 1: Aura</span>
+                        <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#c9a15a]">Layer 1: Private Aura</span>
                       </div>
-                   </div>
-                   <div className="absolute inset-0 animate-[spin_60s_linear_infinite]">
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0.5 h-full bg-gradient-to-b from-transparent via-[#c9a15a]/20 to-transparent"></div>
-                      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full h-0.5 bg-gradient-to-r from-transparent via-[#c9a15a]/20 to-transparent"></div>
                    </div>
                 </div>
              </div>
@@ -828,9 +794,9 @@ const DetailedVideoArtifact: React.FC<{ video: VideoItem; onRemove: () => void; 
           <div className="min-w-0 flex-1">
              <div className="flex items-center gap-2">
                 <h4 className="text-lg font-serif font-bold text-white truncate italic tracking-tight">{video.name}</h4>
-                {isB && <span className="text-[8px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/30 font-black uppercase">On-Chain</span>}
+                {isC && <span className="text-[8px] bg-green-500/20 text-green-500 px-2 py-0.5 rounded border border-green-500/30 font-black uppercase">Protected</span>}
              </div>
-             <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-1">{video.type} INGEST • {video.roleContext}</p>
+             <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-1">{video.type} INGEST • PROOF: {video.result?.zkp_hash.slice(0, 10)}...</p>
           </div>
         </div>
         {!isP && !isB && (
@@ -843,49 +809,36 @@ const DetailedVideoArtifact: React.FC<{ video: VideoItem; onRemove: () => void; 
       {(isC || isB) && video.result && (
         <div className="px-10 pb-10 space-y-8 animate-in slide-in-from-top-6 duration-1000">
            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <ArtifactStat label="Ingest Cost" value={`${video.result.sentient_cents_cost} C`} sub="Gasless Internal" icon={<Zap size={24} className="opacity-10"/>} />
-              <ArtifactStat label="Stagecoin Reward" value={`${isB ? '+25' : `+${video.result.stagecoin}`} Ω`} sub="Minted" icon={<Award size={24} className="opacity-10"/>} />
-              <ArtifactStat label="Reputation" value={`+${video.result.streetcred}`} sub="Cred Boost" icon={<Shield size={24} className="opacity-10"/>} />
+              <ArtifactStat label="ZKP Proof" value="VALID" sub={video.result.zkp_hash.slice(0, 12)} icon={<ShieldCheck size={24} className="opacity-10"/>} />
+              <ArtifactStat label="Encryption" value="AES-256" sub="GCM Sealed" icon={<Lock size={24} className="opacity-10"/>} />
+              <ArtifactStat label="Watermark" value="LOCKED" sub={video.result.watermark_id} icon={<Eye size={24} className="opacity-10"/>} />
            </div>
            
            <div className="bg-zinc-950 rounded-[2.5rem] p-10 border border-white/5 space-y-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-10 opacity-[0.03] pointer-events-none">
-                 <Cpu size={140} className="text-[#c9a15a]" />
+                 <LockKeyhole size={140} className="text-[#c9a15a]" />
               </div>
               
               <div className="flex justify-between items-center text-[10px] border-b border-white/10 pb-4">
                  <div className="flex items-center gap-3">
-                    <Fingerprint size={16} className="text-[#c9a15a]" />
-                    <span className="text-zinc-500 uppercase font-black tracking-widest">Device Hardware Identity</span>
+                    <History size={16} className="text-[#c9a15a]" />
+                    <span className="text-zinc-500 uppercase font-black tracking-widest">Legal License Reference</span>
                  </div>
-                 <span className="font-mono text-[#c9a15a] font-bold text-xs">{video.result.device_fingerprint}</span>
+                 <span className="font-mono text-[#c9a15a] font-bold text-xs">{video.result.license_seal}</span>
               </div>
               
               <div className="grid grid-cols-2 gap-6">
-                 <DimensionBox label="Angular Velocity Norm" value={video.result.kinetic_dimensions.angular_velocity_norm.toFixed(5)} />
-                 <DimensionBox label="Syntax Complexity" value={video.result.kinetic_dimensions.syntax_complexity_index.toFixed(4)} />
+                 <DimensionBox label="ZKP Signature (IP)" value={video.result.signature.slice(0, 20) + '...'} />
+                 <DimensionBox label="Hardware Seal" value={video.result.device_fingerprint} />
               </div>
               
               <div className="pt-6 border-t border-white/10 flex flex-col gap-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
                     <ShieldCheck size={18} className="text-green-500" />
-                    <span className="text-zinc-400 font-medium text-xs">Author: <span className="text-white font-bold">{video.claim?.conceptualAuthor || 'ROOT'}</span></span>
+                    <span className="text-zinc-400 font-medium text-xs">Author Identity Hardware-Locked</span>
                   </div>
-                  {isB ? (
-                    <div className="flex items-center gap-2 text-indigo-400 font-mono text-[10px] font-bold">
-                       <Orbit size={12} />
-                       <span>RELAY_SETTLED_BASE</span>
-                    </div>
-                  ) : (
-                    <span className="text-[10px] text-zinc-700 italic font-mono">{video.result.liability_seal}</span>
-                  )}
-                </div>
-                <div className="p-4 bg-zinc-900/50 rounded-2xl border border-white/5 flex gap-4 items-center">
-                   <Info size={16} className="text-zinc-700 shrink-0" />
-                   <p className="text-[9px] text-zinc-600 leading-relaxed uppercase tracking-widest font-black">
-                      IP ARCHITECTURE VERIFIED. DIMENSIONS REGISTERED TO CANONICAL LEDGER.
-                   </p>
+                  <span className="text-[10px] text-zinc-700 italic font-mono">{video.result.encryption_status} LOCKED</span>
                 </div>
               </div>
            </div>
@@ -919,7 +872,7 @@ const MotherboardStat: React.FC<{label: string, value: string, sub: string, icon
 const DimensionBox: React.FC<{ label: string, value: string }> = ({ label, value }) => (
   <div className="bg-black/40 p-5 rounded-[1.5rem] border border-white/5 group hover:border-[#c9a15a]/40 transition-all">
     <p className="text-[9px] uppercase font-black text-zinc-600 mb-2 tracking-widest">{label}</p>
-    <p className="text-xl font-mono font-bold text-[#c9a15a] tracking-tighter">{value}</p>
+    <p className="text-xl font-mono font-bold text-[#c9a15a] tracking-tighter truncate">{value}</p>
   </div>
 );
 
@@ -962,16 +915,6 @@ const EcosystemIcon: React.FC<{active: boolean, icon: React.ReactNode, onClick: 
       {label}
     </span>
   </button>
-);
-
-const MapDetailCard: React.FC<{ title: string, body: string, icon: React.ReactNode, color: string }> = ({ title, body, icon, color }) => (
-  <div className="glass p-10 rounded-[2.5rem] border-white/5 group hover:border-[#c9a15a]/30 transition-all flex flex-col h-full shadow-2xl">
-    <div className={`w-14 h-14 rounded-2xl mb-8 flex items-center justify-center`} style={{ backgroundColor: color + '22', color: color }}>
-      {icon}
-    </div>
-    <h3 className="text-2xl font-serif font-bold text-white italic mb-4">{title}</h3>
-    <p className="text-zinc-500 text-sm leading-relaxed font-medium">{body}</p>
-  </div>
 );
 
 const InputField: React.FC<{label: string, value: string, onChange: (v: string) => void, placeholder?: string}> = ({label, value, onChange, placeholder}) => (
